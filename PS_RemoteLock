@@ -1,0 +1,36 @@
+function fullout {echo "$(date) -- Current Time: $CT || Remote Time: $RT || New Remote Time: $NRT || Saved Remote Time: $SRT"}
+
+echo "--- Starting ---"
+date
+echo ""
+
+while($productivity -lt 1) {
+$URL = '#########URL to the page that is being updated with time #################'
+
+$CT=[Math]::Floor([decimal](Get-Date(Get-Date).ToUniversalTime()-uformat "%s")) ### Get current time in epoch format
+
+$RT= Invoke-RestMethod -Headers @{"Cache-Control"="no-cache"} -uri $URL ## NO-CACHE to avoid stale data - Pull epoch time from $URL
+$NRT = $RT + 15 ###Gives us up to 15 seconds to see a difference and therefore lock the pc
+
+#If you want it constantly outputting (good for debug)
+fullout
+
+#If previous remote time is NOT equal to previous remote time THEN check ###Avoids spam
+ if ( $NRT -ne $SRT ) {
+
+    if ( $NRT -gt $CT ) {
+        echo " --- REMOTE LOCK START --- "
+        fullout 
+        rundll32.exe user32.dll,LockWorkStation ##Lock Workstation
+	    sleep 15  ## Make sure current time will be greater than remote time
+        echo " --- REMOTE LOCK END --- "
+        echo ""
+	}
+    else {echo "Current Time is LESS than remote"}
+  
+ }
+
+
+$SRT = $NRT  ##Saved Remote Time for comparison
+sleep 3
+}
